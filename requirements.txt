@@ -28,7 +28,7 @@ greenlet==3.1.1
 grpcio==1.69.0
 h11==0.14.0
 httpcore==1.0.7
-httpx==0.28.1
+httpx==0.24.1
 httpx-sse==0.4.0
 huggingface-hub==0.27.1
 idna==3.4
@@ -88,4 +88,4 @@ typing-extensions==4.12.2
 typing-inspect==0.9.0
 tzdata==2024.2
 yarl==1.18.3
-urllib3>=1.21.1,<1.27
+urllib3==1.26.12
