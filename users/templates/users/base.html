@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+    <style>
+        @keyframes slideIn {
+            0% { transform: translateY(-100px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 1s ease-out forwards;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 1.5s ease-out forwards;
+        }
+
+        .logo-text {
+            background: linear-gradient(45deg, #000000, #4a5568);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Mobile menu enhancements */
+        .mobile-menu {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-menu a {
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <div class="container mx-auto p-4 mt-4">
+        <div class="flex flex-wrap items-center justify-between">
+            {% if user.is_authenticated %}
+            <div class="w-8 h-8 rounded-full overflow-hidden">
+                {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" class="w-full h-full object-cover">
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <button class="lg:hidden block text-gray-800 focus:outline-none focus:ring" id="navbarToggle">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Main Heading - Reduced Size -->
+        <div class="text-center mt-8 mb-6">
+            <h1 class="text-4xl font-bold logo-text animate-slide-in">
+                DocuchatNavigator
+            </h1>
+            <p class="text-lg text-gray-600 mt-3 animate-fade-in">
+                Navigate through your documents intelligently
+            </p>
+        </div>
+    </div>
+
+    <!-- Enhanced Mobile Menu -->
+    <div class="hidden lg:hidden mt-4 bg-white shadow-lg rounded-xl absolute left-1/2 transform -translate-x-1/2 z-50 mobile-menu" id="mobileMenu">
+        <ul class="space-y-2 p-3">
+            <li>
+                <a href="/" class="block bg-gray-100 rounded-lg text-gray-800 font-medium hover:bg-gray-200 transition duration-300">
+                    Home
+                </a>
+            </li>
+            <li>
+                <a href="#" class="block bg-gray-100 rounded-lg text-gray-800 font-medium hover:bg-gray-200 transition duration-300">
+                    About
+                </a>
+            </li>
+            <li>
+                <a href="#" class="block bg-gray-100 rounded-lg text-gray-800 font-medium hover:bg-gray-200 transition duration-300">
+                    Services
+                </a>
+            </li>
+            <li>
+                <a href="/contact" class="block bg-gray-100 rounded-lg text-gray-800 font-medium hover:bg-gray-200 transition duration-300">
+                    Contact
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="fixed inset-0 z-50 flex flex-col items-end mt-4 mr-4">
+        {% for message in messages %}
+        <div class="bg-blue-100 border border-blue-400 text-blue-800 px-4 py-3 rounded mb-2 shadow-lg transition-opacity duration-300" id="alert-{{ loop.index }}">
+            <span class="block sm:inline">{{ message }}</span>
+            <button type="button" class="absolute top-0 right-0 mt-1 mr-1 text-gray-600 hover:text-gray-800 focus:outline-none" data-dismiss="alert">
+                <svg class="fill-current h-5 w-5" viewBox="0 0 20 20">
+                    <path d="M14.07 5.93l-1.41 1.41L10 7.41l-2.66-2.67-1.41 1.41L8.59 10 5.93 12.66l1.41 1.41L10 11.59l2.66 2.66 1.41-1.41L11.41 10z"></path>
+                </svg>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page Content -->
+    <div class="mt-6">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbarToggle = document.getElementById('navbarToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            navbarToggle.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Auto-hide Alerts
+            const alerts = document.querySelectorAll('[id^="alert-"]');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    alert.classList.add('opacity-0');
+                    setTimeout(function() {
+                        alert.style.display = 'none';
+                    }, 500);
+                }, 2000);
+            });
+
+            // Close Alert Manually
+            const alertCloseButtons = document.querySelectorAll('[data-dismiss="alert"]');
+            alertCloseButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const parentAlert = this.closest('[id^="alert-"]');
+                    parentAlert.classList.add('opacity-0');
+                    setTimeout(function() {
+                        parentAlert.style.display = 'none';
+                    }, 500);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

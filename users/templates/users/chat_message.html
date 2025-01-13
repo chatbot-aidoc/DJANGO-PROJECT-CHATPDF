@@ -1,0 +1,10 @@
+<!-- users/chat_message.html -->
+<div class="chat-message bot">
+    <div class="chat-message-content">
+        {% if error_message %}
+            {{ error_message }}
+        {% else %}
+            {{ chat_message }}
+        {% endif %}
+    </div>
+</div>

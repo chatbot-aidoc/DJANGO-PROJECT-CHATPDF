@@ -1,0 +1,60 @@
+{% extends "users/base.html" %}
+{% block title %}Alight - Innovate{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col">
+    <!-- Landing Page -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <!-- Project Introduction -->
+            <div class="text-center md:text-left">
+                <p class="text-xl text-gray-800 mb-8 animate-fade-in">
+                    Revolutionize your document management with our AI-powered platform. Unlock new possibilities
+                    and transform the way you interact with your documents.
+                </p>
+                <div class="flex justify-center md:justify-start space-x-4">
+                    <a href="{% url 'login' %}" class="bg-yellow-500 text-black px-8 py-3 rounded-lg hover:bg-yellow-600 transition duration-300 text-lg font-semibold">
+                        Login
+                    </a>
+                    <a href="{% url 'users-register' %}" class="bg-black text-yellow-500 px-8 py-3 rounded-lg hover:bg-gray-800 transition duration-300 text-lg font-semibold">
+                        Sign Up
+                    </a>
+                </div>
+            </div>
+
+            <!-- Project Image -->
+            <div class="hidden md:block">
+                <div>
+                    
+                    <img src="https://appinventiv.com/wp-content/uploads/2021/08/chatbot-development-with-deep-nlp.png" 
+                    alt="Chatbot Development" 
+                    style="margin-left: 150px; width: 500px; height: 500px;">
+                               </div>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="mt-16 grid md:grid-cols-3 gap-8">
+            <div class="bg-black text-yellow-500 p-6 rounded-lg text-center transform hover:scale-105 transition duration-300">
+                <i class="fas fa-file-upload text-4xl mb-4"></i>
+                <h3 class="text-xl font-semibold mb-2">Intelligent Document Management</h3>
+                <p>Seamlessly upload, organize, and manage your documents</p>
+            </div>
+            <div class="bg-black text-yellow-500 p-6 rounded-lg text-center transform hover:scale-105 transition duration-300">
+                <i class="fas fa-search text-4xl mb-4"></i>
+                <h3 class="text-xl font-semibold mb-2">AI-Powered Search</h3>
+                <p>Effortlessly find the information you need</p>
+            </div>
+            <div class="bg-black text-yellow-500 p-6 rounded-lg text-center transform hover:scale-105 transition duration-300">
+                <i class="fas fa-comments text-4xl mb-4"></i>
+                <h3 class="text-xl font-semibold mb-2">Intuitive Document Chat</h3>
+                <p>Interact with your documents using natural language</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-black text-yellow-500 py-6 text-center mt-auto">
+    <p>&copy; 2023 Alight. All rights reserved.</p>
+</footer>
+{% endblock %}

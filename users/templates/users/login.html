@@ -1,0 +1,250 @@
+{% extends "users/base.html" %}
+{% block title %} Login Page {% endblock title%}
+{% block content %}
+<style>
+    .form-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 85vh;
+        padding: 2rem 0;
+        position: relative;
+    }
+    .abc{padding-left:25px;}
+    .container {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0.01rem;
+    }
+
+    .card {
+        border-radius: 16px;
+        padding: 16rem;
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background-color: #f8fafc;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-control:focus {
+        border-color: #FFA500;
+        box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.2);
+        outline: none;
+    }
+
+    /* Error message styling */
+    .error-message {
+        background-color: #FFE9E9;
+        border: 1px solid #FFA3A3;
+        color: #D63301;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .error-message i {
+        font-size: 1.2rem;
+    }
+
+    .error-field {
+        border-color: #FFA3A3 !important;
+    }
+
+    .social-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .btn {
+        padding: 0.6rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 1.25rem;
+        min-width: 160px;
+    }
+
+    .btn-primary {
+        background-color: #FFA500;
+        color: black;
+    }
+
+    .btn-primary:hover {
+        background-color: #FF8C00;
+    }
+
+    .btn-secondary {
+        background-color: #000000;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #333333;
+    }
+
+    .login-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #1a1a1a;
+    }
+
+    .divider {
+        position: relative;
+        text-align: center;
+        margin: 1.5rem 0;
+    }
+
+    .divider-text {
+        background-color: white;
+        padding: 0 1rem;
+        color: #666;
+        position: relative;
+        z-index: 1;
+    }
+
+    .divider::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background-color: #e2e8f0;
+    }
+
+    .form-label {
+        display: block;
+        font-size:1.5rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .remember-me {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        font-size:1.1rem;
+    }
+
+    .remember-me input {
+        margin-right: 1rem;
+    }
+
+    .back-home {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background-color: #FFA500;
+        color: black;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+    }
+
+    .back-home:hover {
+        background-color: #FF8C00;
+    }
+</style>
+
+
+<div class="form-content">
+    <div class="container">
+        <div class="card">
+            <h1 class="login-title">Sign In</h1>
+
+            {% if form.errors %}
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                Invalid username or password. Please try again.
+            </div>
+            {% endif %}
+
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.username.errors|first }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.password.errors|first }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="remember-me">
+                    {{ form.remember_me }}
+                    <label>Remember me</label>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <a href="{% url 'users-register' %}" class="btn btn-secondary text-center flex items-center justify-center">Sign Up</a>                    
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <a href="/" class="back-home">
+        <i class="fas fa-home mr-2"></i>Back to Home
+    </a>
+</div>
+
+<footer class="bg-black text-yellow-500 py-6 text-center mt-auto">
+    <p>&copy; 2023 Alight. All rights reserved.</p>
+</footer>
+{% endblock %}

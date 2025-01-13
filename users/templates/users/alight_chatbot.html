@@ -1,0 +1,242 @@
+{% extends "users/base.html" %}
+{% block title %}Alight Chatbot{% endblock %}
+{% block content %}
+ 
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        background-color: #222;
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 600px;
+    }
+ 
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background-color: #2d3748;
+        border-bottom: 1px solid #333;
+    }
+ 
+    .chat-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #FFA500;
+        margin: 0;
+    }
+ 
+    .chat-header a {
+        color: #FFA500;
+        text-decoration: none;
+    }
+ 
+    .chat-messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+ 
+    .chat-message {
+        display: flex;
+        flex-direction: column;
+        max-width: 70%;
+    }
+ 
+    .chat-message.user {
+        align-self: flex-end;
+    }
+ 
+    .chat-message.bot {
+        align-self: flex-start;
+    }
+ 
+    .chat-message-content {
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        word-wrap: break-word;
+    }
+ 
+    .chat-message.user .chat-message-content {
+        background-color: #FFA500;
+        color: #222;
+    }
+ 
+    .chat-message.bot .chat-message-content {
+        background-color: #2d3748;
+        color: #fff;
+    }
+ 
+    .chat-input-container {
+        padding: 1rem 1.5rem;
+        background-color: #2d3748;
+        border-top: 1px solid #333;
+    }
+ 
+    .chat-form {
+        display: flex;
+        gap: 0.5rem;
+    }
+ 
+    .chat-input {
+        flex-grow: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid #444;
+        border-radius: 0.5rem;
+        background-color: #333;
+        color: #fff;
+        font-size: 1rem;
+    }
+ 
+    .chat-input:focus {
+        outline: none;
+        border-color: #FFA500;
+    }
+ 
+    .chat-submit {
+        padding: 0.75rem 1.5rem;
+        background-color: #FFA500;
+        color: #222;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .chat-submit:hover {
+        background-color: #FF8C00;
+    }
+
+    .chat-submit:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    
+    .typing-indicator {
+        display: none;
+        color: #FFA500;
+        font-style: italic;
+        margin-bottom: 0.5rem;
+    }
+    
+    .typing-indicator.active {
+        display: block;
+    }
+</style>
+ 
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>Alight Chatbot</h2>
+        <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+    </div>
+ 
+    <div class="chat-messages" id="chat-messages">
+        <!-- Initial welcome message -->
+        <div class="chat-message bot">
+            <div class="chat-message-content">
+                Hello! I'm here to help you. How can I assist you today?
+            </div>
+        </div>
+    </div>
+ 
+    <div class="typing-indicator" id="typing-indicator">
+        Bot is typing...
+    </div>
+ 
+    <div class="chat-input-container">
+        <form id="chat-form" class="chat-form">
+            {% csrf_token %}
+            <input type="text" id="user-input" class="chat-input" placeholder="Type your message here..." required>
+            <button type="submit" class="chat-submit" id="send-button">Send</button>
+        </form>
+    </div>
+</div>
+ 
+<script>
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const typingIndicator = document.getElementById('typing-indicator');
+
+    function appendMessage(content, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${isUser ? 'user' : 'bot'}`;
+        messageDiv.innerHTML = `<div class="chat-message-content">${content}</div>`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        // Disable input and button while processing
+        userInput.disabled = true;
+        sendButton.disabled = true;
+        
+        // Show user message
+        appendMessage(message, true);
+        
+        // Clear input
+        userInput.value = '';
+        
+        // Show typing indicator
+        typingIndicator.classList.add('active');
+
+        try {
+            const response = await fetch('{% url "alight_chatbot" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({
+                    'user_input': message
+                })
+            });
+
+            const data = await response.text();
+            
+            // Extract bot message from response
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = data;
+            const botMessageContent = tempDiv.querySelector('.chat-message-content');
+            
+            if (botMessageContent) {
+                appendMessage(botMessageContent.textContent);
+            } else {
+                appendMessage("I apologize, but I couldn't process your request at the moment. Please try again.");
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            appendMessage("I apologize, but I encountered an error. Please try again later.");
+        } finally {
+            // Hide typing indicator
+            typingIndicator.classList.remove('active');
+            
+            // Re-enable input and button
+            userInput.disabled = false;
+            sendButton.disabled = false;
+            userInput.focus();
+        }
+    });
+
+    // Auto-scroll to bottom when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+</script>
+ 
+{% endblock %}
