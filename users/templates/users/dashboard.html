@@ -1,0 +1,212 @@
+{% extends "users/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .welcome-card {
+        background: #2d3748;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .welcome-title {
+        color: #FFA500;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-subtitle {
+        color: #cbd5e0;
+        font-size: 1.2rem;
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .feature-card {
+        background: #2d3748;
+        border-radius: 12px;
+        padding: 2rem;
+        transition: transform 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .feature-icon {
+        color: #FFA500;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-title {
+        color: #FFA500;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .feature-description {
+        color: #cbd5e0;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+
+    .feature-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        margin-top: auto;
+    }
+
+    .button-enabled {
+        background-color: #FFA500;
+        color: black;
+    }
+
+    .button-enabled:hover {
+        background-color: #FF8C00;
+    }
+
+    .logout-button {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background-color: rgba(255, 165, 0, 0.2);
+        color: #FFA500;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .logout-button:hover {
+        background-color: rgba(255, 165, 0, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        .welcome-title {
+            font-size: 2rem;
+        }
+    }
+    /* Alight Chatbot Card */
+    .feature-card.chatbot-card {
+        background: #2d3748;
+        border-radius: 12px;
+        padding: 2rem;
+        transition: transform 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .feature-card.chatbot-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="welcome-card">
+        <h1 class="welcome-title">Welcome, {{ user.username }}!</h1>
+        <p class="welcome-subtitle">Your Documents Hub</p>
+        <a href="{% url 'logout' %}" class="logout-button">
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+        </a>
+    </div>
+
+    <div class="feature-grid">
+        <!-- Document Management Card -->
+        <div class="feature-card">
+            <i class="fas fa-file-alt feature-icon"></i>
+            <h2 class="feature-title">Document Management</h2>
+            <p class="feature-description">
+                Organize, categorize, and manage your documents efficiently. Access your files anytime, anywhere.
+            </p>
+            <a href="{% url 'document_management' %}" class="feature-button button-enabled">
+                <i class="fas fa-folder-open"></i>
+                Manage Documents
+            </a>
+        </div>
+   
+
+        <!-- Document Chat Card -->
+        <div class="feature-card">
+            <i class="fas fa-comments feature-icon"></i>
+            <h2 class="feature-title">Document Chat</h2>
+            <p class="feature-description">
+                Interact with your documents using natural language processing. Get instant insights and answers.
+            </p>
+            <a href="{% url 'document_chat' %}" class="feature-button button-enabled">
+                <i class="fas fa-robot mr-2"></i>
+                Start Chatting
+            </a>
+        </div>
+
+         <!-- Alight Chatbot Card -->
+        <div class="feature-card chatbot-card">
+            <i class="fas fa-comments feature-icon"></i>
+            <h2 class="feature-title">Alight Chatbot</h2>
+            <p class="feature-description">
+                Interact with your documents using natural language processing. Get instant insights and answers.
+            </p>
+            <a href="{% url 'alight_chatbot' %}" class="feature-button button-enabled">
+                <i class="fas fa-robot mr-2"></i>
+                Alight Chatbot
+            </a>
+        </div>
+
+  
+    </div>
+</div>
+
+{% if messages %}
+<div class="fixed bottom-4 right-4">
+    {% for message in messages %}
+        <div class="{% if message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-red-100 border-red-400 text-red-700{% endif %} border px-4 py-3 rounded relative mb-2" role="alert">
+            <span class="block sm:inline">{{ message }}</span>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const messages = document.querySelectorAll('[role="alert"]');
+        messages.forEach(function(message) {
+            setTimeout(function() {
+                message.style.opacity = '0';
+                message.style.transition = 'opacity 0.5s';
+                setTimeout(function() {
+                    message.remove();
+                }, 500);
+            }, 3000);
+        });
+    });
+</script>
+{% endif %}
+
+{% endblock %}

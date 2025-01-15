@@ -1,0 +1,659 @@
+{% extends "users/base.html" %}
+{% block title %}Document Management{% endblock %}
+{% block content %}
+
+<style>
+    /* Core Layout Styles */
+    .document-management {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+        min-height: calc(100vh - 200px);
+    }
+
+    /* Header Section */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: #2d3748;
+        border-radius: 12px;
+        color: white;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #FFA500;
+    }
+
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 165, 0, 0.2);
+        color: #FFA500;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .back-button:hover {
+        background: rgba(255, 165, 0, 0.3);
+    }
+
+    /* Access Level Badge */
+    .access-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        margin: 1rem 0;
+    }
+
+    .senior-badge {
+        background: rgba(255, 165, 0, 0.2);
+        color: #FFA500;
+    }
+
+    .viewer-badge {
+        background: rgba(148, 163, 184, 0.2);
+        color: #cbd5e0;
+    }
+
+    /* Upload Section */
+    .upload-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+    }
+
+    .upload-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Form Elements */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #4a5568;
+    }
+
+    .form-input {
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #FFA500;
+        box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.1);
+    }
+
+    /* File Input Styles */
+    .file-input-wrapper {
+        position: relative;
+    }
+
+    .file-input-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #f7fafc;
+        color: #4a5568;
+        border: 1px dashed #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .file-input-label:hover {
+        background: #edf2f7;
+        border-color: #FFA500;
+    }
+
+    .file-input {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Upload Button */
+    .upload-btn {
+        background: #FFA500;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: fit-content;
+    }
+
+    .upload-btn:hover {
+        background: #FF8C00;
+    }
+
+    /* Access Restricted Message */
+    .access-restricted {
+        text-align: center;
+        padding: 2rem;
+        background: #FEE2E2;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        color: #DC2626;
+    }
+
+    .access-restricted i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .access-restricted h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Loading Indicator */
+    .loading-indicator {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-right: 0.5rem;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #FFA500;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<!-- Loading Indicator -->
+<div id="loadingIndicator" class="loading-indicator">
+    <div class="loading-spinner"></div>
+    <span>Processing...</span>
+</div>
+
+<div class="document-management">
+    <!-- Header -->
+    <div class="header">
+        <h1 class="page-title">Document Management</h1>
+        <a href="{% url 'dashboard' %}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Access Level Badge -->
+    <div class="access-badge {% if user.profile.designation == 'Senior level' %}senior-badge{% else %}viewer-badge{% endif %}">
+        <i class="fas {% if user.profile.designation == 'Senior level' %}fa-crown{% else %}fa-eye{% endif %}"></i>
+        {% if user.profile.designation == "Senior level" %}
+            Senior Level Access
+        {% else %}
+            Viewer Access
+        {% endif %}
+    </div>
+
+    <!-- Upload Section -->
+    {% if user.profile.designation == "Senior level" %}
+        <div class="upload-section">
+            <h2 class="section-title">Upload New Document</h2>
+            <form method="POST" action="{% url 'upload_document' %}" 
+                  enctype="multipart/form-data" class="upload-form" 
+                  onsubmit="return validateForm()">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Document Title</label>
+                    <input type="text" name="title" class="form-input" 
+                           placeholder="Enter unique document title" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">File</label>
+                    <div class="file-input-wrapper">
+                        <label class="file-input-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="file-name">Choose File</span>
+                            <input type="file" name="document" class="file-input" 
+                                   accept=".pdf,.doc,.docx,.txt" required>
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="upload-btn">
+                    <i class="fas fa-upload"></i>
+                    Upload Document
+                </button>
+            </form>
+        </div>
+    {% else %}
+        <div class="access-restricted">
+            <i class="fas fa-lock"></i>
+            <h3>Upload Restricted</h3>
+            <p>Only senior level employees can upload documents.</p>
+        </div>
+    {% endif %}
+<!-- Document List Styles -->
+<style>
+    /* Document Grid */
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    /* Document Card */
+    .document-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+    }
+
+    .document-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .document-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 165, 0, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .document-icon i {
+        color: #FFA500;
+        font-size: 1.5rem;
+    }
+
+    .document-info h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+    }
+
+    .document-meta {
+        font-size: 0.875rem;
+        color: #718096;
+        margin-bottom: 1rem;
+    }
+
+    /* Document Actions */
+    .document-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .action-button {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .preview-button {
+        background: #4A5568;
+        color: white;
+    }
+
+    .preview-button:hover {
+        background: #2D3748;
+    }
+
+    .download-button {
+        background: #FFA500;
+        color: white;
+    }
+
+    .download-button:hover {
+        background: #FF8C00;
+    }
+
+    .delete-button {
+        background: #FEE2E2;
+        color: #DC2626;
+    }
+
+    .delete-button:hover {
+        background: #FEE2E2;
+        opacity: 0.9;
+    }
+
+    /* Preview Modal */
+    .preview-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 1000;
+    }
+
+    .modal-content {
+        position: relative;
+        width: 90%;
+        max-width: 1000px;
+        height: 90vh;
+        margin: 2vh auto;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #2d3748;
+        color: white;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        transition: opacity 0.3s;
+    }
+
+    .close-button:hover {
+        opacity: 0.8;
+    }
+
+    .preview-container {
+        flex: 1;
+        padding: 1rem;
+        background: #f7fafc;
+        overflow: auto;
+    }
+
+    .preview-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+    }
+
+    /* Empty State */
+    .no-documents {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .no-documents i {
+        font-size: 3rem;
+        color: #FFA500;
+        margin-bottom: 1rem;
+    }
+
+    .no-documents h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+    }
+
+    .no-documents p {
+        color: #718096;
+    }
+
+    @media (max-width: 768px) {
+        .documents-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-content {
+            width: 95%;
+            height: 95vh;
+            margin: 2.5vh auto;
+        }
+    }
+</style>
+
+<!-- Documents List -->
+{% if documents %}
+    <div class="documents-grid">
+        {% for document in documents %}
+            <div class="document-card">
+                <div class="document-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="document-info">
+                    <h3>{{ document.title|default:'Untitled Document' }}</h3>
+                    <div class="document-meta">
+                        <p><i class="fas fa-user"></i> {{ document.uploaded_by|default:document.user.username }}</p>
+                        <p><i class="fas fa-calendar"></i> {{ document.uploaded_at|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                <div class="document-actions">
+                    {% if document.file.url|lower|slice:"-4:" in '.pdf,.txt' %}
+                        <button class="action-button preview-button" 
+                                onclick="previewDocument('{{ document.file.url }}', '{{document.title }}')">
+                            <i class="fas fa-eye"></i>
+                            Preview
+                        </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'download_document' document.id %}" 
+                       class="action-button download-button" 
+                       onclick="handleDownload(event)">
+                        <i class="fas fa-download"></i>
+                        Download
+                    </a>
+
+                    {% if user.profile.designation == "Senior level" %}
+                        <form action="{% url 'delete_document' document.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this document?')">
+                            {% csrf_token %}
+                            <button type="submit" class="action-button delete-button">
+                                <i class="fas fa-trash"></i>
+                                Delete
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-documents">
+        <i class="fas fa-folder-open"></i>
+        <h3>No Documents Yet</h3>
+        <p>{% if user.profile.designation == "Senior level" %}Upload your first document to get started{% else %}No documents have been uploaded yet{% endif %}</p>
+    </div>
+{% endif %}
+
+<!-- Preview Modal -->
+<div id="previewModal" class="preview-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="previewTitle" class="modal-title"></h2>
+            <button onclick="closePreview()" class="close-button">&times;</button>
+        </div>
+        <div class="preview-container">
+            <iframe id="previewFrame" class="preview-frame" sandbox="allow-same-origin"></iframe>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- JavaScript -->
+<script>
+// File input handling
+const fileInput = document.querySelector('.file-input');
+if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || 'Choose File';
+        document.getElementById('file-name').textContent = fileName;
+    });
+}
+
+// Form validation
+function validateForm() {
+    const title = document.querySelector('input[name="title"]').value;
+    const file = document.querySelector('input[name="document"]').files[0];
+    
+    if (title.length < 3) {
+        alert('Title must be at least 3 characters long');
+        return false;
+    }
+    
+    if (file && file.size > 10 * 1024 * 1024) { // 10MB limit
+        alert('File size must be less than 10MB');
+        return false;
+    }
+    
+    showLoading();
+    return true;
+}
+
+// Document preview
+function previewDocument(url, title) {
+    const modal = document.getElementById('previewModal');
+    const frame = document.getElementById('previewFrame');
+    const titleElement = document.getElementById('previewTitle');
+
+    showLoading();
+    
+    frame.onload = hideLoading;
+    frame.onerror = function() {
+        hideLoading();
+        alert('Error loading preview');
+    };
+
+    titleElement.textContent = title;
+    frame.src = url;
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closePreview() {
+    const modal = document.getElementById('previewModal');
+    const frame = document.getElementById('previewFrame');
+    
+    modal.style.display = 'none';
+    frame.src = '';
+    document.body.style.overflow = 'auto';
+}
+
+// Download handling
+function handleDownload(event) {
+    showLoading();
+    setTimeout(hideLoading, 2000); // Hide after 2 seconds
+}
+
+// Loading indicator
+function showLoading() {
+    document.getElementById('loadingIndicator').style.display = 'block';
+}
+
+function hideLoading() {
+    document.getElementById('loadingIndicator').style.display = 'none';
+}
+
+// Click outside modal to close
+window.onclick = function(event) {
+    const modal = document.getElementById('previewModal');
+    if (event.target === modal) {
+        closePreview();
+    }
+};
+
+// Auto-hide messages
+document.addEventListener('DOMContentLoaded', function() {
+    const messages = document.querySelectorAll('[role="alert"]');
+    messages.forEach(function(message) {
+        setTimeout(function() {
+            message.style.opacity = '0';
+            message.style.transition = 'opacity 0.5s';
+            setTimeout(function() {
+                message.remove();
+            }, 500);
+        }, 3000);
+    });
+});
+</script>
+
+{% endblock %}
+
+    

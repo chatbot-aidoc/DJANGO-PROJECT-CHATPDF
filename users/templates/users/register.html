@@ -1,0 +1,206 @@
+{% extends "users/base.html" %}
+{% block title %} Register Page {% endblock title %}
+{% block content %}
+<style>
+    .form-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 100px);
+        padding: 2rem 0;
+        position: relative;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0rem;
+    }
+
+    .card {
+        border-radius: 12px;
+        padding: 6rem;
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control, .select-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background-color: #fff;
+        font-size: 1rem;
+        appearance: none;
+    }
+
+    .select-wrapper {
+        position: relative;
+    }
+
+    .select-wrapper::after {
+        content: '▼';
+        font-size: 0.8rem;
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        pointer-events: none;
+    }
+
+    .form-control:focus, .select-control:focus {
+        border-color: #FFA500;
+        box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.2);
+        outline: none;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.95rem;
+        min-width: 120px;
+        max-width: 200px;
+    }
+
+    .btn-primary {
+        background-color: #FFA500;
+        color: black;
+    }
+
+    .btn-primary:hover {
+        background-color: #FF8C00;
+    }
+
+    .btn-secondary {
+        background-color: #000000;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #333333;
+    }
+
+    .footer-nav {
+        text-align: center;
+        padding: 1rem;
+        margin-top: 2rem;
+    }
+
+    .footer-nav a {
+        display: inline-block;
+        margin: 0 0.5rem;
+        text-decoration: none;
+        color: #666;
+        transition: color 0.3s ease;
+    }
+
+    .footer-nav a:hover {
+        color: #333;
+    }
+</style>
+
+<div class="form-content">
+    <div class="container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 class="text-2xl font-semibold mb-4">Create Account</h3>
+            </div>
+
+            {% if form.errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {% for key, value in form.errors.items %}
+                    <strong>{{ value }}</strong>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">First Name</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                            {{ form.username }}
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Team Name</label>
+                            <div class="select-wrapper">
+                                <select name="team_name" class="select-control" required>
+                                    <option value="">Select Team</option>
+                                    <option value="HRX">HRX</option>
+                                    <option value="Cloud Operations">Cloud Operations</option>
+                                    <option value="Development">Development</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Designation</label>
+                            <div class="select-wrapper">
+                                <select name="designation" class="select-control" required>
+                                    <option value="">Select Designation</option>
+                                    <option value="Entry level">Entry level</option>
+                                    <option value="Mid level">Mid level</option>
+                                    <option value="Senior level">Senior level</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                            {{ form.password1 }}
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Confirm Password</label>
+                            {{ form.password2 }}
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center gap-3">
+                        <button type="submit" class="btn btn-primary">
+                            Sign Up
+                        </button>
+
+                        <a href="{% url 'login' %}" class="btn btn-secondary text-center">
+                            Back to Login
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer-nav">
+            <a href="/" class="text-sm">
+                <i class="fas fa-home mr-1"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock content %}
