@@ -1,0 +1,111 @@
+{% extends "users/base.html" %}
+{% block title %}Your Profile{% endblock title %}
+{% block content %}
+    <div class="min-h-screen flex items-center justify-center bg-gray-50">
+        <div class="max-w-4xl w-full bg-white p-8 rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-semibold text-indigo-700">Your Profile</h2>
+                <a href="/" class="text-indigo-700 hover:text-indigo-900">Back to Home</a>
+            </div>
+
+            <!-- Display Profile Picture -->
+            <div class="flex items-center justify-center mb-8">
+                <div class="relative w-24 h-24 rounded-full overflow-hidden border-4 border-indigo-700">
+                    {% if request.user.profile.avatar %}
+                        <img src="{{ request.user.profile.avatar.url }}" alt="Profile Picture" class="w-full h-full object-cover">
+                    {% else %}
+                        <img src="https://via.placeholder.com/150" alt="Default Profile Picture" class="w-full h-full object-cover">
+                    {% endif %}
+                </div>
+                <div class="ml-6">
+                    <p class="text-xl font-semibold text-indigo-800">{{ request.user.username }}</p>
+                    <p class="text-gray-600">{{ request.user.email }}</p>
+                </div>
+            </div>
+
+            <!-- Profile Form -->
+            <form id="profile-form" method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                <div id="form-errors"></div>
+
+                <!-- Username -->
+                <div class="flex items-center">
+                    <label for="id_username" class="text-sm font-medium text-gray-700 w-1/4">Username</label>
+                    <input type="text" id="id_username" name="username" value="{{ request.user.username }}" 
+                           class="flex-grow border-gray-300 rounded-lg px-4 py-2 bg-gray-50" 
+                           readonly onclick="makeEditable('id_username')">
+                </div>
+
+                <!-- Email Address -->
+                <div class="flex items-center">
+                    <label for="id_email" class="text-sm font-medium text-gray-700 w-1/4">Email</label>
+                    <input type="email" id="id_email" name="email" value="{{ request.user.email }}" 
+                           class="flex-grow border-gray-300 rounded-lg px-4 py-2 bg-gray-50" 
+                           readonly onclick="makeEditable('id_email')">
+                </div>
+
+                <!-- Avatar -->
+                <div class="flex items-center">
+                    <label for="id_avatar" class="text-sm font-medium text-gray-700 w-1/4">Avatar</label>
+                    {{ profile_form.avatar }}
+                </div>
+
+                <!-- Bio -->
+                <div class="flex items-center">
+                    <label for="id_bio" class="text-sm font-medium text-gray-700 w-1/4">Bio</label>
+                    {{ profile_form.bio }}
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="mt-6">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+
+            <!-- Change Password -->
+            <div class="mt-6">
+                <a href="{% url 'password_change' %}" class="text-indigo-700 hover:text-indigo-900 text-center">
+                    Change Password
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to make input fields editable on click
+        function makeEditable(id) {
+            document.getElementById(id).removeAttribute("readonly");
+        }
+
+        // AJAX Form submission
+        document.getElementById('profile-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+            var csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Show success message
+                    document.getElementById('form-errors').innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+                } else {
+                    // Show errors
+                    document.getElementById('form-errors').innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('form-errors').innerHTML = '<div class="alert alert-danger">changes succesful</div>';
+            });
+        });
+    </script>
+{% endblock content %}

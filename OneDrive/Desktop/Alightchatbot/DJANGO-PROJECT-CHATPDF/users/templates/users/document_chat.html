@@ -1,0 +1,763 @@
+{% extends "users/base.html" %}
+{% block title %}Document Chat{% endblock %}
+{% block content %}
+<form id="chatForm">
+    {% csrf_token %}
+    <!-- rest of your content -->
+</form>
+
+<style>
+    /* Main Container */
+    .chat-interface {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    /* Header Styles */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: #2d3748;
+        border-radius: 12px;
+        color: white;
+    }
+
+    .page-title {
+        color: #FFA500;
+        font-size: 2rem;
+        font-weight: 600;
+    }
+
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 165, 0, 0.2);
+        color: #FFA500;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .back-button:hover {
+        background: rgba(255, 165, 0, 0.3);
+    }
+
+    /* Document Selection Section */
+    .document-selection {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .team-info {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(255, 165, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    /* Model Selection Styles */
+    .model-selection {
+        margin-bottom: 1.5rem;
+    }
+
+    .model-dropdown {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+    }
+
+    /* Document Dropdown Styles */
+    .document-dropdown {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .dropdown-header {
+        padding: 1rem;
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .dropdown-content {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+
+    .dropdown-search {
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        transition: all 0.3s;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #FFA500;
+        box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.1);
+    }
+
+    .document-list {
+        padding: 0.5rem;
+    }
+
+    .document-item {
+        padding: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        transition: background 0.3s;
+        border-radius: 6px;
+    }
+
+    .document-item:hover {
+        background: #f8fafc;
+    }
+
+    .document-checkbox {
+        width: 18px;
+        height: 18px;
+        accent-color: #FFA500;
+    }
+
+    /* Selected Documents Display */
+    .selected-documents {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+
+    .document-tag {
+        background: #2d3748;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .remove-tag {
+        color: #FFA500;
+        cursor: pointer;
+        font-size: 1.25rem;
+        transition: opacity 0.3s;
+    }
+
+    .remove-tag:hover {
+        opacity: 0.8;
+    }
+
+    /* Loading Animation */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.75);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .loading-spinner {
+        position: relative;
+        width: 60px;
+        height: 60px;
+    }
+
+    .loading-spinner::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 4px solid #f3f3f3;
+        border-top-color: #FFA500;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-text {
+        position: absolute;
+        margin-top: 80px;
+        color: white;
+        font-size: 1.1rem;
+    }
+</style>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="text-center">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Processing documents...</div>
+    </div>
+</div>
+
+<div class="chat-interface">
+    <!-- Header -->
+    <div class="header">
+        <h1 class="page-title">Document Chat</h1>
+        <a href="{% url 'dashboard' %}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Document Selection -->
+    <div class="document-selection">
+        <div class="team-info">
+            <i class="fas fa-users"></i>
+            Team: {{ user.profile.team_name|default:"No Team Assigned" }}
+        </div>
+
+        <!-- Model Selection -->
+        <div class="model-selection">
+            <select id="modelSelection" class="model-dropdown">
+                <option value="command">Cohere Command</option>
+                <option value="command-light">Cohere Command Light</option>
+                <option value="command-nightly">Cohere Command Nightly</option>
+            </select>
+        </div>
+
+        <!-- Document Dropdown -->
+        <div class="document-dropdown">
+            <div class="dropdown-header" onclick="toggleDropdown()">
+                <span>Select Documents</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <div class="dropdown-content" id="documentDropdown" style="display: none;">
+                <div class="dropdown-search">
+                    <input type="text" 
+                           class="search-input" 
+                           placeholder="Search documents..."
+                           onkeyup="filterDocuments(this.value)">
+                </div>
+
+                <div class="document-list" id="documentList">
+                    <!-- Documents will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="selected-documents" id="selectedDocuments">
+            <!-- Selected documents will be displayed here -->
+        </div>
+
+        <button id="startChatBtn" 
+                class="bg-yellow-500 text-white px-4 py-2 rounded-lg w-full hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2"
+                onclick="startChat()" 
+                disabled>
+            <i class="fas fa-comments"></i>
+            Start Chat
+        </button>
+    </div>
+	
+	
+	<!-- Chat Interface -->
+    <div id="chatInterface" class="hidden">
+        <style>
+            /* Chat Interface Styles */
+            .chat-container {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                height: 600px;
+                display: flex;
+                flex-direction: column;
+                margin-top: 2rem;
+            }
+
+            .chat-header {
+                padding: 1rem 1.5rem;
+                background: #2d3748;
+                color: white;
+                border-radius: 12px 12px 0 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .chat-messages {
+                flex: 1;
+                padding: 1.5rem;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .message {
+                max-width: 80%;
+                padding: 1rem;
+                border-radius: 12px;
+                animation: messageAppear 0.3s ease-out;
+            }
+
+            @keyframes messageAppear {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .user-message {
+                background: #FFA500;
+                color: white;
+                margin-left: auto;
+                border-bottom-right-radius: 4px;
+            }
+
+            .bot-message {
+                background: #2d3748;
+                color: white;
+                margin-right: auto;
+                border-bottom-left-radius: 4px;
+            }
+
+            .chat-input-container {
+                padding: 1rem;
+                border-top: 1px solid #e2e8f0;
+                display: flex;
+                gap: 1rem;
+            }
+
+            .chat-input {
+                flex: 1;
+                padding: 0.75rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                resize: none;
+                min-height: 45px;
+                max-height: 120px;
+                transition: all 0.3s;
+            }
+
+            .chat-input:focus {
+                outline: none;
+                border-color: #FFA500;
+                box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.1);
+            }
+
+            .send-button {
+                padding: 0.75rem 1.5rem;
+                background: #FFA500;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: all 0.3s;
+                min-width: 100px;
+                justify-content: center;
+            }
+
+            .send-button:hover {
+                background: #FF8C00;
+            }
+
+            .send-button:disabled {
+                background: #cbd5e0;
+                cursor: not-allowed;
+            }
+
+            /* Typing Indicator */
+            .typing-indicator {
+                display: none;
+                padding: 1rem;
+                color: #718096;
+            }
+
+            .typing-dot {
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                background: #718096;
+                border-radius: 50%;
+                margin-right: 4px;
+                animation: typing 1s infinite;
+            }
+
+            .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+            @keyframes typing {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-5px); }
+            }
+        </style>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h3>Chat with Documents</h3>
+                <span id="selectedDocsInfo"></span>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will appear here -->
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+
+            <div class="chat-input-container">
+                <textarea 
+                    class="chat-input" 
+                    id="messageInput"
+                    placeholder="Type your question here..."
+                    rows="1"
+                    onkeydown="handleKeyPress(event)"
+                ></textarea>
+                <button class="send-button" onclick="sendMessage()" id="sendButton">
+                    <i class="fas fa-paper-plane"></i>
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedDocuments = new Set();
+    let chatHistory = [];
+    let processingMessage = false;
+    let isProcessing = false;
+    
+    // Fetch documents when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchDocuments();
+    });
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (!message || isProcessing || !currentSessionId) return;
+    
+    // Disable input and button while processing
+    isProcessing = true;
+    messageInput.disabled = true;
+    document.getElementById('sendButton').disabled = true;
+    
+    // Display user message
+    addMessage(message, 'user');
+    messageInput.value = '';
+    
+    // Show typing indicator
+    const typingIndicator = document.getElementById('typingIndicator');
+    typingIndicator.style.display = 'block';
+    
+    try {
+        const response = await fetch('{% url "chat_response" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                message: message,
+                session_id: currentSessionId,
+                model: document.getElementById('modelSelection').value
+            })
+        });
+
+        if (!response.ok) throw new Error('Failed to get response');
+
+        const data = await response.json();
+        typingIndicator.style.display = 'none';
+        
+        if (data.status === 'success') {
+            addMessage(data.response, 'bot');
+        } else {
+            throw new Error(data.message || 'Error processing request');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        addMessage('Sorry, I encountered an error processing your request. Please try again.', 'bot');
+        typingIndicator.style.display = 'none';
+    } finally {
+        isProcessing = false;
+        messageInput.disabled = false;
+        document.getElementById('sendButton').disabled = false;
+        messageInput.focus();
+        scrollToBottom();
+    }
+}
+    function addMessage(content, type) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}-message`;
+        
+        // Convert URLs to clickable links
+        content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-400 hover:underline">$1</a>');
+        
+        // Handle markdown-style code blocks
+        content = content.replace(/```(\w+)?\n([\s\S]+?)```/g, '<pre class="bg-gray-800 p-4 rounded-lg my-2 overflow-x-auto"><code>$2</code></pre>');
+        
+        // Handle inline code
+        content = content.replace(/`([^`]+)`/g, '<code class="bg-gray-800 px-2 py-1 rounded">$1</code>');
+        
+        messageDiv.innerHTML = content;
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+    
+    async function fetchDocuments() {
+        try {
+            const response = await fetch('{% url "document_list" %}');
+            if (response.ok) {
+                const documents = await response.json();
+                populateDocumentList(documents);
+            } else {
+                throw new Error('Failed to fetch documents');
+            }
+        } catch (error) {
+            console.error('Error fetching documents:', error);
+            const documentList = document.getElementById('documentList');
+            documentList.innerHTML = '<div class="text-center text-gray-500">Failed to fetch documents. Please try again later.</div>';
+        }
+    }
+    
+    function populateDocumentList(documents) {
+        const documentList = document.getElementById('documentList');
+        documentList.innerHTML = ''; // Clear existing items
+        
+        documents.forEach(doc => {
+            const docItem = document.createElement('div');
+            docItem.className = 'document-item';
+            docItem.innerHTML = `
+                <input type="checkbox" class="document-checkbox" id="doc_${doc.id}">
+                <div>
+                    <div>${doc.title || 'Untitled Document'}</div>
+                </div>
+            `;
+            
+            // Add click event to the entire item
+            docItem.addEventListener('click', (event) => {
+                if (!event.target.classList.contains('document-checkbox')) {
+                    const checkbox = docItem.querySelector('.document-checkbox');
+                    checkbox.checked = !checkbox.checked;
+                    toggleDocument(doc.id, doc.title);
+                }
+            });
+            
+            // Add separate event for checkbox to prevent double-triggering
+            const checkbox = docItem.querySelector('.document-checkbox');
+            checkbox.addEventListener('click', (event) => {
+                event.stopPropagation();
+                toggleDocument(doc.id, doc.title);
+            });
+            
+            documentList.appendChild(docItem);
+        });
+    }
+    
+    function toggleDropdown() {
+        const dropdown = document.getElementById('documentDropdown');
+        const isHidden = dropdown.style.display === 'none';
+        dropdown.style.display = isHidden ? 'block' : 'none';
+    }
+    
+    function filterDocuments(searchTerm) {
+        const items = document.getElementsByClassName('document-item');
+        searchTerm = searchTerm.toLowerCase();
+        
+        Array.from(items).forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+        });
+    }
+    
+    function toggleDocument(id, title) {
+        const checkbox = document.getElementById(`doc_${id}`);
+        if (!checkbox) return;
+        
+        if (selectedDocuments.has(id)) {
+            selectedDocuments.delete(id);
+        } else {
+            selectedDocuments.add(id);
+        }
+        
+        updateSelectedDocuments();
+        updateStartChatButton();
+    }
+    
+    function updateSelectedDocuments() {
+        const container = document.getElementById('selectedDocuments');
+        container.innerHTML = '';
+        
+        selectedDocuments.forEach(id => {
+            const checkbox = document.getElementById(`doc_${id}`);
+            if (!checkbox) return;
+            
+            const title = checkbox.closest('.document-item').querySelector('div > div').textContent;
+            const tag = document.createElement('div');
+            tag.className = 'document-tag';
+            tag.innerHTML = `
+                ${title}
+                <span class="remove-tag" onclick="removeDocument(${id})">&times;</span>
+            `;
+            container.appendChild(tag);
+        });
+    }
+    
+    function removeDocument(id) {
+        const checkbox = document.getElementById(`doc_${id}`);
+        if (checkbox) checkbox.checked = false;
+        selectedDocuments.delete(id);
+        updateSelectedDocuments();
+        updateStartChatButton();
+    }
+    
+    function updateStartChatButton() {
+        const button = document.getElementById('startChatBtn');
+        button.disabled = selectedDocuments.size === 0;
+    }
+
+    let currentSessionId = null;
+    
+    async function startChat() {
+    if (selectedDocuments.size === 0) {
+        alert('Please select at least one document');
+        return;
+    }
+
+    const selectedModel = document.getElementById('modelSelection').value;
+    showLoading('Initializing chat...');
+
+    try {
+        const response = await fetch('{% url "initialize_chat" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                documents: Array.from(selectedDocuments),
+                model: selectedModel
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            // Store the session ID
+            currentSessionId = data.session_id;
+            
+            // Hide document selection and show chat interface
+            const docSelection = document.querySelector('.document-selection');
+            const chatInterface = document.getElementById('chatInterface');
+            
+            docSelection.style.display = 'none';
+            chatInterface.classList.remove('hidden');
+            
+            // Update selected documents info
+            document.getElementById('selectedDocsInfo').textContent = 
+                `${selectedDocuments.size} document${selectedDocuments.size > 1 ? 's' : ''} selected`;
+            
+            // Add welcome message
+            addMessage('Hi! I can help you with questions about the selected documents. What would you like to know?', 'bot');
+            scrollToBottom();
+        } else {
+            throw new Error(data.message || 'Failed to initialize chat');
+        }
+    } catch (error) {
+        console.error('Error initializing chat:', error);
+        alert(error.message || 'Error initializing chat. Please try again.');
+    } finally {
+        hideLoading();
+    }
+}
+    
+    function addMessage(content, type) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}-message`;
+        messageDiv.textContent = content;
+        messagesContainer.appendChild(messageDiv);
+    }
+    
+    function showLoading(message = 'Processing...') {
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.querySelector('.loading-text').textContent = message;
+        overlay.style.display = 'flex';
+    }
+    
+    function hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+    
+    function scrollToBottom() {
+        const messagesDiv = document.getElementById('chatMessages');
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('documentDropdown');
+        const header = document.querySelector('.dropdown-header');
+        
+        if (dropdown && header && !dropdown.contains(e.target) && !header.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+    </script>
+
+{% endblock %}

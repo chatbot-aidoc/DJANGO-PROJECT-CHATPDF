@@ -1,0 +1,87 @@
+{% extends "users/base.html" %}
+{% block title %}Logout{% endblock title %}
+{% block content %}
+<style>
+    .form-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 85vh;
+        padding: 2rem 0;
+    }
+
+    .card {
+        border-radius: 16px;
+        width: 100%;
+        max-width: 25rem;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .card-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-text {
+        font-size: 1.125rem;
+        color: #4a4a4a;
+        margin-bottom: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1.125rem;
+        font-weight: 500;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-block;
+        margin: 0 0.5rem;
+    }
+
+    .btn-primary {
+        background-color: #FFA500;
+        color: black;
+    }
+
+    .btn-primary:hover {
+        background-color: #FF8C00;
+    }
+
+    .btn-secondary {
+        background-color: #000000;
+        color: #FFA500;
+    }
+
+    .btn-secondary:hover {
+        background-color: #333333;
+    }
+
+    hr {
+        margin: 2rem 0;
+        border: none;
+        height: 1px;
+        background: #e2e8f0;
+    }
+</style>
+
+<div class="form-content">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">You have been logged out successfully</h5>
+            <p class="card-text">
+                Thanks for your time, contact me for any comments or suggestions using my email address.
+            </p>
+            <hr>
+            <a href="{% url 'login' %}" class="btn btn-primary">Sign in again</a>
+            <a href="{% url 'home' %}" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock content %}
